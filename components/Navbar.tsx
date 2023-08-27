@@ -7,7 +7,7 @@ import { getCurrentUser } from "@/lib/session"
 
 const Navbar = async () => {
   const session = await getCurrentUser()
-
+  console.log('---session', session);
   return (
     <nav className="flexBetween navbar">
       <div className="flex-1 flexStart gap-10">
