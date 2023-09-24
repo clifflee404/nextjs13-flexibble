@@ -1,11 +1,12 @@
 import { ProjectInterface } from "@/common.types"
-import Categories from "@/components/Categories";
-import ProjectCard from "@/components/ProjectCard";
+import Categories from "@/components/Categories"
+import LoadMore from "@/components/LoadMore"
+import ProjectCard from "@/components/ProjectCard"
 import { fetchAllProjects } from "@/lib/actions"
 
 type ProjectSearch = {
   projectSearch: {
-    edges: { node: ProjectInterface }[];
+    edges: { node: ProjectInterface }[]
     pageInfo: {
       hasPreviousPage: boolean
       hasNextPage: boolean
@@ -15,22 +16,27 @@ type ProjectSearch = {
   }
 }
 type SearchParams = {
-  category?: string;
+  category?: string | null
+  endcursor?: string | null
 }
 
 type Props = {
   searchParams: SearchParams
 }
 
-const Home = async ({ searchParams: { category }} : Props) => {
-  const data = await fetchAllProjects(category) as ProjectSearch;
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
+export const revalidate = 0;
 
-  const projectsToDisplay = data?.projectSearch?.edges || [];
+const Home = async ({ searchParams: { category, endcursor } }: Props) => {
+  const data = (await fetchAllProjects(category, endcursor)) as ProjectSearch
 
-  if(projectsToDisplay.length === 0){
+  const projectsToDisplay = data?.projectSearch?.edges || []
+
+  if (projectsToDisplay.length === 0) {
     return (
       <section className="flexStart flex-col paddings">
-        <Categories/>
+        <Categories />
         <p className="no-result-text text-center">
           No projects found, go create some first.
         </p>
@@ -38,14 +44,13 @@ const Home = async ({ searchParams: { category }} : Props) => {
     )
   }
 
-
   return (
     <section className="flex-start flex-col paddings mb-16">
-      <Categories/>
+      <Categories />
       {/* <h1>Posts</h1> */}
       <section className="projects-grid">
-        {projectsToDisplay.map(({ node }: {node: ProjectInterface}) => (
-          <ProjectCard 
+        {projectsToDisplay.map(({ node }: { node: ProjectInterface }) => (
+          <ProjectCard
             key={node?.id}
             id={node?.id}
             image={node?.image}
@@ -56,7 +61,13 @@ const Home = async ({ searchParams: { category }} : Props) => {
           />
         ))}
       </section>
-      <h1>LoadMore</h1>
+
+      <LoadMore
+        startCursor={data?.projectSearch?.pageInfo?.startCursor}
+        endCursor={data?.projectSearch?.pageInfo?.endCursor}
+        hasPreviousPage={data?.projectSearch?.pageInfo?.hasPreviousPage}
+        hasNextPage={data?.projectSearch?.pageInfo.hasNextPage}
+      />
     </section>
   )
 }
